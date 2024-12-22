@@ -18,7 +18,7 @@ public class File {
     @Column(name = "type_file", length = 4, nullable = false)
     private String type;
     @Column(name = "file_size", nullable = false)
-    private Integer size;
+    private Long size;
     @Column(name = "upload_date")
     private LocalDateTime uploadedAt;
     @Column(name = "url_file")

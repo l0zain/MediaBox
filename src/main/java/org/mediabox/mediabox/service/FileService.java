@@ -6,13 +6,18 @@ import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.mediabox.mediabox.entity.File;
+import org.mediabox.mediabox.entity.User;
 import org.mediabox.mediabox.exceptions.ImageUploadException;
 import org.mediabox.mediabox.prop.MinioProperties;
+import org.mediabox.mediabox.repository.FileRepository;
+import org.mediabox.mediabox.security.JwtTokenProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -20,8 +25,11 @@ import java.util.UUID;
 public class FileService {
     private final MinioClient minioClient;
     private final MinioProperties minioProperties;
+    private final FileRepository fileRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserService userService;
 
-    public String upload(MultipartFile file) {
+    public String upload(MultipartFile file, String token) {
         try {
             createBucket();
         } catch (Exception e) {
@@ -32,6 +40,15 @@ public class FileService {
         }
         String fileName = generateFileName(file);
         InputStream inputStream;
+        token = token.substring(7);
+
+        String name = file.getOriginalFilename();
+        String ext = generateExtension(file);
+        Long size = file.getSize();
+        LocalDateTime uploadDate = LocalDateTime.now();
+        Long userId = Long.valueOf(jwtTokenProvider.getId(token));
+
+        User user = userService.getUserById(userId);
 
         try {
             inputStream = file.getInputStream();
@@ -39,6 +56,17 @@ public class FileService {
             throw new ImageUploadException("Image upload failed");
         }
         saveImage(inputStream, fileName);
+
+        File saveFile = new File();
+        saveFile.setName(name);
+        saveFile.setType(ext);
+        saveFile.setSize(size);
+        saveFile.setPath(fileName);
+        saveFile.setUploadedAt(uploadDate);
+        saveFile.setUser(user);
+
+        fileRepository.save(saveFile);
+
         return fileName;
     }
 
