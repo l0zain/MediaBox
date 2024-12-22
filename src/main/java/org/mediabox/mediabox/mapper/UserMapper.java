@@ -8,7 +8,6 @@ import org.mediabox.mediabox.entity.User;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
-    @Mapping(target = "role", constant = "ROLE_USER")
     User toEntity(UserRegisterDto userRegisterDto);
 
     UserRegisterDto toDto(User user);

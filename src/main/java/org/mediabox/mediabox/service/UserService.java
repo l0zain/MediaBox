@@ -1,6 +1,7 @@
 package org.mediabox.mediabox.service;
 
 import lombok.RequiredArgsConstructor;
+import org.mediabox.mediabox.entity.Role;
 import org.mediabox.mediabox.entity.User;
 import org.mediabox.mediabox.mapper.UserMapper;
 import org.mediabox.mediabox.repository.UserRepository;
@@ -29,6 +30,7 @@ public class UserService {
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setFreeSpace(10*1024*1024L);
+        user.setRole(Role.ROLE_USER);
         return userRepository.save(user);
 
     }
