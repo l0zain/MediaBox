@@ -1,7 +1,9 @@
 package org.mediabox.mediabox.config;
 
+import io.minio.MinioClient;
 import lombok.RequiredArgsConstructor;
 
+import org.mediabox.mediabox.prop.MinioProperties;
 import org.mediabox.mediabox.security.JwtTokenFilter;
 import org.mediabox.mediabox.security.JwtTokenProvider;
 import org.springframework.context.ApplicationContext;
@@ -23,6 +25,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class ApplicationConfig {
     private final ApplicationContext applicationContext;
+    private final MinioProperties minioProperties;
+
+    @Bean
+    public MinioClient minioClient() {
+        return MinioClient.builder()
+                .endpoint(minioProperties.getUrl())
+                .credentials(minioProperties.getAccessKey(), minioProperties.getSecretKey())
+                .build();
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

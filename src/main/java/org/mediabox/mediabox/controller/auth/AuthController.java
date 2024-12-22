@@ -1,4 +1,4 @@
-package org.mediabox.mediabox.controller;
+package org.mediabox.mediabox.controller.auth;
 
 import lombok.RequiredArgsConstructor;
 import org.mediabox.mediabox.dto.user.UserRegisterDto;
