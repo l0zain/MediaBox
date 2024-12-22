@@ -1,7 +1,6 @@
 package org.mediabox.mediabox.mapper;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
 import org.mediabox.mediabox.dto.user.UserRegisterDto;
 import org.mediabox.mediabox.entity.User;
