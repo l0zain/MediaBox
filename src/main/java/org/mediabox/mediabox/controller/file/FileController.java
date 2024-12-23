@@ -21,9 +21,13 @@ public class FileController {
         return fileService.upload(file, token);
     }
 
-
     @GetMapping
-    public List<FileResponse> getAllImages(@RequestHeader("Authorization") String token){
+    public List<FileResponse> getAllImages(@RequestHeader("Authorization") String token) {
         return fileService.getAllImages(token);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteImage(@PathVariable("id") Long id) {
+        fileService.delete(id);
     }
 }

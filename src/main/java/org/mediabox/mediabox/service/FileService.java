@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -130,11 +131,23 @@ public class FileService {
     @SneakyThrows
     private String generatePresignedUrl(String fileName) {
         String url = minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-                        .bucket(minioProperties.getBucket())
-                        .object(fileName)
-                        .method(Method.GET)
+                .bucket(minioProperties.getBucket())
+                .object(fileName)
+                .method(Method.GET)
                 .build());
         return url;
+    }
+
+    @SneakyThrows
+    public void delete(Long id) {
+        File file = fileRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("File not found"));
+        minioClient.removeObject(RemoveObjectArgs.builder()
+                .bucket(minioProperties.getBucket())
+                .object(file.getPath())
+                .build());
+
+        fileRepository.delete(file);
     }
 
 }
