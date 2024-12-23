@@ -1,16 +1,18 @@
 package org.mediabox.mediabox.service;
 
-import io.minio.BucketExistsArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+import io.minio.*;
+import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.NotNull;
+import org.mediabox.mediabox.dto.FileResponse;
 import org.mediabox.mediabox.entity.File;
 import org.mediabox.mediabox.entity.User;
 import org.mediabox.mediabox.exceptions.ImageUploadException;
+import org.mediabox.mediabox.mapper.FileMapper;
 import org.mediabox.mediabox.prop.MinioProperties;
 import org.mediabox.mediabox.repository.FileRepository;
+import org.mediabox.mediabox.repository.UserRepository;
 import org.mediabox.mediabox.security.JwtTokenProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -28,6 +31,8 @@ public class FileService {
     private final FileRepository fileRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
+    private final UserRepository userRepository;
+    private final FileMapper fileMapper;
 
     public String upload(MultipartFile file, String token) {
         try {
@@ -40,13 +45,12 @@ public class FileService {
         }
         String fileName = generateFileName(file);
         InputStream inputStream;
-        token = token.substring(7);
+        Long userId = getUserId(token);
 
         String name = file.getOriginalFilename();
         String ext = generateExtension(file);
         Long size = file.getSize();
         LocalDateTime uploadDate = LocalDateTime.now();
-        Long userId = Long.valueOf(jwtTokenProvider.getId(token));
 
         User user = userService.getUserById(userId);
 
@@ -68,6 +72,12 @@ public class FileService {
         fileRepository.save(saveFile);
 
         return fileName;
+    }
+
+    private Long getUserId(String token) {
+        token = token.substring(7);
+
+        return Long.valueOf(jwtTokenProvider.getId(token));
     }
 
     @SneakyThrows
@@ -99,5 +109,33 @@ public class FileService {
                 .object(fileName)
                 .build());
     }
+
+    public List<FileResponse> getAllImages(String token) {
+        Long userId = getUserId(token);
+        List<File> userFiles = fileRepository.findByUserId(userId);
+
+        if (userFiles.isEmpty()) return null;
+
+        List<FileResponse> files = userFiles
+                .stream().map(fileMapper::toDto)
+                .toList();
+
+        for (FileResponse file : files) {
+            file.setPath(generatePresignedUrl(file.getPath()));
+        }
+
+        return files;
+    }
+
+    @SneakyThrows
+    private String generatePresignedUrl(String fileName) {
+        String url = minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                        .bucket(minioProperties.getBucket())
+                        .object(fileName)
+                        .method(Method.GET)
+                .build());
+        return url;
+    }
+
 }
 

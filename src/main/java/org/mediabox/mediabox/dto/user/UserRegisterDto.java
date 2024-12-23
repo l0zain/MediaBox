@@ -18,8 +18,4 @@ public class UserRegisterDto {
     private String email;
     @NotNull
     private String password;
-//    @Builder.Default
-//    private Role role = Role.ROLE_USER;
-//    @Builder.Default
-//    private Long freeSpace = 10 * 1024 * 1024L;
 }
