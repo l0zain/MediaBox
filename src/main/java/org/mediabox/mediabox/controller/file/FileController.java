@@ -1,5 +1,6 @@
 package org.mediabox.mediabox.controller.file;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.mediabox.mediabox.dto.file.FileResponse;
 import org.mediabox.mediabox.dto.file.Info;
@@ -22,7 +23,8 @@ public class FileController {
     }
 
     @GetMapping
-    public Info getAllImages(@RequestHeader("Authorization") String token) {
+    @Operation(summary = "Get all media files and username")
+    public Info getAllMedia(@RequestHeader("Authorization") String token) {
         return fileService.getInfo(token);
     }
 
