@@ -3,7 +3,7 @@ package org.mediabox.mediabox.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
-import org.mediabox.mediabox.dto.FileResponse;
+import org.mediabox.mediabox.dto.file.FileResponse;
 import org.mediabox.mediabox.entity.File;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)

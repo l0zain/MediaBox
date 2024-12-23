@@ -1,8 +1,8 @@
 package org.mediabox.mediabox.controller.file;
 
 import lombok.RequiredArgsConstructor;
-import org.mediabox.mediabox.dto.FileResponse;
-import org.mediabox.mediabox.entity.File;
+import org.mediabox.mediabox.dto.file.FileResponse;
+import org.mediabox.mediabox.dto.file.Info;
 import org.mediabox.mediabox.service.FileService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,8 +22,18 @@ public class FileController {
     }
 
     @GetMapping
-    public List<FileResponse> getAllImages(@RequestHeader("Authorization") String token) {
-        return fileService.getAllImages(token);
+    public Info getAllImages(@RequestHeader("Authorization") String token) {
+        return fileService.getInfo(token);
+    }
+
+    @GetMapping("/photos")
+    public List<FileResponse> getAllPhotos(@RequestHeader("Authorization") String token) {
+        return fileService.getAllPhotos(token);
+    }
+
+    @GetMapping("/videos")
+    public List<FileResponse> getAllVideos(@RequestHeader("Authorization") String token) {
+        return fileService.getAllVideos(token);
     }
 
     @DeleteMapping("/{id}")

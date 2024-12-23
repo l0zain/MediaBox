@@ -1,10 +1,10 @@
-package org.mediabox.mediabox.dto;
+package org.mediabox.mediabox.dto.file;
 
 import lombok.Data;
 
 @Data
 public class FileResponse {
-    private String id;
+    private Long id;
     private String name;
     private String path;
 }

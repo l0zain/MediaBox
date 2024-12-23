@@ -4,15 +4,15 @@ import io.minio.*;
 import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.jetbrains.annotations.NotNull;
-import org.mediabox.mediabox.dto.FileResponse;
+import org.mediabox.mediabox.dto.file.FileResponse;
+import org.mediabox.mediabox.dto.file.Info;
+import org.mediabox.mediabox.entity.Extension;
 import org.mediabox.mediabox.entity.File;
 import org.mediabox.mediabox.entity.User;
 import org.mediabox.mediabox.exceptions.ImageUploadException;
 import org.mediabox.mediabox.mapper.FileMapper;
 import org.mediabox.mediabox.prop.MinioProperties;
 import org.mediabox.mediabox.repository.FileRepository;
-import org.mediabox.mediabox.repository.UserRepository;
 import org.mediabox.mediabox.security.JwtTokenProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,9 +20,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +34,6 @@ public class FileService {
     private final FileRepository fileRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserService userService;
-    private final UserRepository userRepository;
     private final FileMapper fileMapper;
 
     public String upload(MultipartFile file, String token) {
@@ -111,7 +112,7 @@ public class FileService {
                 .build());
     }
 
-    public List<FileResponse> getAllImages(String token) {
+    public List<FileResponse> getAllMedia(String token) {
         Long userId = getUserId(token);
         List<File> userFiles = fileRepository.findByUserId(userId);
 
@@ -126,6 +127,45 @@ public class FileService {
         }
 
         return files;
+    }
+
+    public Info getInfo(String token) {
+        Long userId = getUserId(token);
+        String username = userService.getUserById(userId).getUsername();
+
+        List<FileResponse> fileResponses = getAllMedia(token);
+
+        return Info.builder()
+                .username(username)
+                .files(fileResponses)
+                .build();
+    }
+
+    public List<FileResponse> getAllPhotos(String token) {
+        return getFilesByExtension(token, Extension.JPG, Extension.JPEG);
+    }
+
+    public List<FileResponse> getAllVideos(String token) {
+        return getFilesByExtension(token, Extension.MP4);
+    }
+
+    private List<FileResponse> getFilesByExtension(String token, Extension... extensions) {
+        List<FileResponse> allFiles = getAllMedia(token);
+
+        if (allFiles == null) return null;
+        Set<String> allowedExtensions = Arrays.stream(extensions)
+                .map(Extension::name)
+                .map(String::toUpperCase)
+                .collect(Collectors.toSet());
+
+        return allFiles.stream()
+                .filter(file -> {
+                    String fileName = file.getName();
+                    String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toUpperCase();
+
+                    return allowedExtensions.contains(extension);
+                })
+                .toList();
     }
 
     @SneakyThrows
@@ -149,6 +189,4 @@ public class FileService {
 
         fileRepository.delete(file);
     }
-
 }
-
